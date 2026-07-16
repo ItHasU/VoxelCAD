@@ -14,12 +14,12 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 
 ## Phase 1 — Cœur du moteur voxel
 
-- [ ] `grid.ts` : fonction d'itération sur la grille à partir de `xMin/xMax/yMin/yMax/zMin/zMax/step` (calcul de `nx, ny, nz`, conversion index ↔ coordonnées).
-- [ ] Garde-fou : calcul du nombre total de voxels, seuil d'avertissement/blocage configurable.
-- [ ] `sampler.worker.ts` : Web Worker qui reçoit le code JS transpilé + les paramètres de grille, exécute `isInside` sur chaque cellule, renvoie une structure compacte (ex. `Uint8Array`) + progression périodique.
-- [ ] Vérifier le fonctionnement du worker une fois inliné par `vite-plugin-singlefile` (Blob URL si besoin).
-- [ ] `meshing.ts` : génération de géométrie avec culling des faces internes (algorithme décrit dans ARCHITECTURE.md).
-- [ ] Tests unitaires (Vitest) : itération de grille, cas limites (grille vide, grille pleine, un seul voxel), meshing (nombre de faces attendu sur des cas simples comme un cube 1×1×1, 2×2×2).
+- [x] `grid.ts` : fonction d'itération sur la grille à partir de `xMin/xMax/yMin/yMax/zMin/zMax/step` (calcul de `nx, ny, nz`, conversion index ↔ coordonnées).
+- [x] Garde-fou : calcul du nombre total de voxels, seuil d'avertissement/blocage configurable.
+- [x] `sampler.worker.ts` : Web Worker qui reçoit le code JS transpilé + les paramètres de grille, exécute `isInside` sur chaque cellule, renvoie une structure compacte (ex. `Uint8Array`) + progression périodique.
+- [x] Vérifier le fonctionnement du worker une fois inliné par `vite-plugin-singlefile` (via l'import `?worker&inline` de Vite, testé en ouverture `file://` avec Playwright).
+- [x] `meshing.ts` : génération de géométrie avec culling des faces internes (algorithme décrit dans ARCHITECTURE.md).
+- [x] Tests unitaires (Vitest) : itération de grille, cas limites (grille vide, grille pleine, un seul voxel), meshing (nombre de faces attendu sur des cas simples comme un cube 1×1×1, 2×2×2).
 
 ## Phase 2 — Éditeur Monaco
 

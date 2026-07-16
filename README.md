@@ -37,4 +37,4 @@ npm run format    # Prettier
 
 ## Statut
 
-Phase 0 (setup projet) terminée. Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.
+Phases 0 (setup projet) et 1 (cœur du moteur voxel) terminées. Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.
