@@ -1,6 +1,5 @@
 import {
   AmbientLight,
-  Box3,
   BufferGeometry,
   DirectionalLight,
   GridHelper,
@@ -14,13 +13,22 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { observeResize } from './resize';
+import { getTheme, onThemeChange, type Theme } from '../ui/theme';
 
 export interface ViewerOptions {
-  /** Couleur de fond de la scène (défaut : gris sombre). */
-  background?: number;
   /** Couleur du matériau du modèle. */
   modelColor?: number;
 }
+
+const BACKGROUND: Record<Theme, number> = {
+  dark: 0x14161c,
+  light: 0xeceef3,
+};
+
+const GRID_COLORS: Record<Theme, [number, number]> = {
+  dark: [0x555555, 0x333333],
+  light: [0xc2c6d0, 0xd8dbe2],
+};
 
 export class Viewer {
   private readonly renderer: WebGLRenderer;
@@ -31,11 +39,14 @@ export class Viewer {
   private gridHelper: GridHelper;
 
   private mesh: Mesh | null = null;
+  private gridSpan = 20;
+  private gridGroundY = 0;
   private disposeResize: () => void;
+  private disposeTheme: () => void;
   private frameHandle = 0;
 
   constructor(container: HTMLElement, options: ViewerOptions = {}) {
-    const { background = 0x1a1b20, modelColor = 0x4f9dff } = options;
+    const { modelColor = 0x4f9dff } = options;
 
     this.renderer = new WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -56,7 +67,7 @@ export class Viewer {
     fill.position.set(-6, -3, -4);
     this.scene.add(ambient, key, fill);
 
-    this.gridHelper = new GridHelper(20, 20, 0x555555, 0x333333);
+    this.gridHelper = this.buildGrid();
     this.scene.add(this.gridHelper);
 
     this.material = new MeshStandardMaterial({
@@ -66,13 +77,19 @@ export class Viewer {
       flatShading: true,
     });
 
-    this.renderer.setClearColor(background, 1);
+    this.applyTheme(getTheme());
+    this.disposeTheme = onThemeChange((theme) => this.applyTheme(theme));
 
     const rect = container.getBoundingClientRect();
     this.setSize(rect.width || 1, rect.height || 1);
     this.disposeResize = observeResize(container, (w, h) => this.setSize(w, h));
 
     this.animate();
+  }
+
+  private applyTheme(theme: Theme): void {
+    this.renderer.setClearColor(BACKGROUND[theme], 1);
+    this.rebuildGrid();
   }
 
   private setSize(width: number, height: number): void {
@@ -129,27 +146,34 @@ export class Viewer {
     this.controls.target.copy(center);
     this.controls.update();
 
-    this.updateGrid(box);
-  }
-
-  /** Redimensionne et repositionne la grille de repère sous le volume. */
-  private updateGrid(box: Box3): void {
     const size = new Vector3();
     box.getSize(size);
-    const span = Math.max(size.x, size.z, 1);
-    const divisions = Math.min(Math.ceil(span) * 2, 200);
+    this.gridSpan = Math.max(size.x, size.z, 1) * 2;
+    this.gridGroundY = box.min.y;
+    this.rebuildGrid();
+  }
 
+  private buildGrid(): GridHelper {
+    const [main, secondary] = GRID_COLORS[getTheme()];
+    const divisions = Math.min(Math.ceil(this.gridSpan), 200);
+    const grid = new GridHelper(this.gridSpan, divisions, main, secondary);
+    grid.position.y = this.gridGroundY;
+    return grid;
+  }
+
+  /** Reconstruit la grille de repère (taille, position et couleurs du thème courant). */
+  private rebuildGrid(): void {
     this.scene.remove(this.gridHelper);
     this.gridHelper.geometry.dispose();
-
-    this.gridHelper = new GridHelper(span * 2, divisions, 0x555555, 0x333333);
-    this.gridHelper.position.y = box.min.y;
+    (this.gridHelper.material as { dispose(): void }).dispose();
+    this.gridHelper = this.buildGrid();
     this.scene.add(this.gridHelper);
   }
 
   dispose(): void {
     cancelAnimationFrame(this.frameHandle);
     this.disposeResize();
+    this.disposeTheme();
     this.clearMesh();
     this.controls.dispose();
     this.material.dispose();

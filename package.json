@@ -24,6 +24,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "monaco-editor": "^0.55.1",
     "three": "^0.185.1"
   }
 }

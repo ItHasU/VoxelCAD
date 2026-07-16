@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -7,7 +7,53 @@
     <title>VoxelCAD</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <header class="toolbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">VoxelCAD</span>
+        </div>
+        <div class="toolbar-controls">
+          <label class="field field--inline">
+            <span class="field-label">Exemple</span>
+            <select id="example-select" class="select"></select>
+          </label>
+          <button id="theme-toggle" class="icon-button" type="button" aria-label="Basculer le thème">
+            <span class="theme-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="panel panel--editor">
+          <div class="panel-header">
+            <h2 class="panel-title">Fonction <code>isInside(x, y, z)</code></h2>
+          </div>
+          <div id="editor" class="editor-host"></div>
+        </section>
+
+        <section class="panel panel--viewer">
+          <div id="viewer" class="viewer-host"></div>
+          <div id="status" class="status-badge" hidden></div>
+        </section>
+
+        <aside class="panel panel--params">
+          <div class="panel-header">
+            <h2 class="panel-title">Paramètres</h2>
+          </div>
+          <form id="bounds-form" class="params-body"></form>
+          <div class="params-footer">
+            <div id="voxel-estimate" class="estimate"></div>
+            <button id="generate" class="button button--primary" type="button">Générer</button>
+          </div>
+          <div id="progress" class="progress" hidden>
+            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+            <button id="cancel" class="button button--ghost" type="button">Annuler</button>
+          </div>
+          <div id="error-panel" class="error-panel" hidden></div>
+        </aside>
+      </main>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

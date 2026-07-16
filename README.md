@@ -37,4 +37,4 @@ npm run format    # Prettier
 
 ## Statut
 
-Phases 0 (setup projet), 1 (cœur du moteur voxel) et 4 (viewer 3D) terminées. Restent l'éditeur Monaco (phase 2), l'UI de paramètres (phase 3) et l'export STL/GLB (phase 5). Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.
+Phases 0 à 4 terminées : l'application est utilisable de bout en bout (écrire `isInside` dans l'éditeur Monaco → régler les bornes → générer → visualiser en 3D), avec un thème clair/sombre. Reste l'export STL/GLB (phase 5) et le polish (phase 7). Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.

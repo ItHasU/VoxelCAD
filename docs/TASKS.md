@@ -23,20 +23,20 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 
 ## Phase 2 — Éditeur Monaco
 
-- [ ] Intégrer Monaco Editor (`monaco-editor` + config Vite associée, ex. `vite-plugin-monaco-editor` si nécessaire).
-- [ ] Configurer le langage TypeScript, les `compilerOptions`, et la signature imposée `isInside(x: number, y: number, z: number): boolean`.
-- [ ] `transpile.ts` : récupérer le JS émis via le language service interne de Monaco (`getEmitOutput`).
-- [ ] Afficher les diagnostics de compilation TypeScript directement dans l'éditeur.
-- [ ] `errorPanel.ts` : afficher les erreurs d'exécution levées par `isInside` pendant l'échantillonnage (ex. exception à un point donné).
-- [ ] Exemples prédéfinis : `cube.ts`, `sphere.ts`, `cylinder.ts` (code source `isInside` correspondant).
-- [ ] `exampleSelector.ts` : sélecteur d'exemple qui précharge le code correspondant dans l'éditeur.
+- [x] Intégrer Monaco Editor (`monaco-editor`, workers inline via `?worker&inline` pour le single-file).
+- [x] Configurer le langage TypeScript, les `compilerOptions`, et un type de référence `IsInside` (extraLib).
+- [x] `transpile.ts` : récupérer le JS émis via le language service interne de Monaco (`getEmitOutput`), en transpilant le modèle de l'éditeur (évite la collision « Duplicate function implementation »).
+- [x] Afficher les diagnostics de compilation TypeScript directement dans l'éditeur (diagnostics Monaco natifs).
+- [x] `errorPanel.ts` : afficher les erreurs d'exécution levées par `isInside` pendant l'échantillonnage (avec le point fautif).
+- [x] Exemples prédéfinis : `cube.ts`, `sphere.ts`, `cylinder.ts` (code source `isInside` correspondant).
+- [x] `exampleSelector.ts` : sélecteur d'exemple qui précharge le code correspondant dans l'éditeur.
 
 ## Phase 3 — UI de paramètres
 
-- [ ] `boundsForm.ts` : champs `xMin/xMax`, `yMin/yMax`, `zMin/zMax`, `step`, avec validation (bornes cohérentes, pas > 0).
-- [ ] Affichage en direct du nombre de voxels estimé à partir des paramètres saisis.
-- [ ] Bouton "Générer" déclenchant le pipeline (transpilation → worker → meshing → affichage).
-- [ ] `progress.ts` : barre/indicateur de progression pendant le calcul dans le worker, avec possibilité d'annuler.
+- [x] `boundsForm.ts` : champs `xMin/xMax`, `yMin/yMax`, `zMin/zMax`, `step`, avec validation (bornes cohérentes, pas > 0).
+- [x] Affichage en direct du nombre de voxels estimé à partir des paramètres saisis.
+- [x] Bouton "Générer" déclenchant le pipeline (transpilation → worker → meshing → affichage).
+- [x] `progress.ts` : barre/indicateur de progression pendant le calcul dans le worker, avec possibilité d'annuler.
 
 ## Phase 4 — Viewer 3D
 
