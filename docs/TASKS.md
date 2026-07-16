@@ -40,11 +40,13 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 
 ## Phase 4 — Viewer 3D
 
-- [ ] `scene.ts` : setup three.js (scène, caméra perspective, lumières, `OrbitControls`).
-- [ ] Grid/axes helper pour repère visuel.
-- [ ] Affichage de la géométrie générée (remplacement propre du mesh précédent à chaque nouvelle génération).
-- [ ] `resize.ts` : gestion du redimensionnement du canvas/fenêtre.
-- [ ] Cadrage automatique de la caméra sur le volume généré (fit-to-bounds).
+*Réalisée avant les phases 2-3 (choix : voir le moteur voxel à l'écran au plus tôt).*
+
+- [x] `scene.ts` : setup three.js (scène, caméra perspective, lumières, `OrbitControls`).
+- [x] Grid helper pour repère visuel (redimensionné/positionné sous le volume).
+- [x] Affichage de la géométrie générée (remplacement propre du mesh précédent à chaque nouvelle génération).
+- [x] `resize.ts` : gestion du redimensionnement du canvas/fenêtre (`ResizeObserver`).
+- [x] Cadrage automatique de la caméra sur le volume généré (fit-to-bounds).
 
 ## Phase 5 — Export STL / GLB
 

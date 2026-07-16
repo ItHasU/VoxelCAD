@@ -1,14 +1,41 @@
 :root {
   color-scheme: light dark;
-  font: 16px/1.5 system-ui, sans-serif;
+  font: 14px/1.5 system-ui, sans-serif;
 }
 
-body {
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
   margin: 0;
+  height: 100%;
 }
 
 #app {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 32px;
+  position: relative;
+}
+
+#viewer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+#viewer canvas {
+  display: block;
+}
+
+#status {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #e6e6e6;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
