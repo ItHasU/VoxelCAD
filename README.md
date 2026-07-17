@@ -37,4 +37,4 @@ npm run format    # Prettier
 
 ## Statut
 
-Phases 0 à 4 terminées : l'application est utilisable de bout en bout (écrire `isInside` dans l'éditeur Monaco → régler les bornes → générer → visualiser en 3D), avec un thème clair/sombre. Reste l'export STL/GLB (phase 5) et le polish (phase 7). Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.
+Phases 0 à 5 terminées : l'application est utilisable de bout en bout (écrire `isInside` dans l'éditeur Monaco → régler les bornes → générer → visualiser en 3D → exporter en STL/GLB), avec un thème clair/sombre. Reste le polish (phase 7). Voir [docs/TASKS.md](docs/TASKS.md) pour l'avancement.

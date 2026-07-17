@@ -50,10 +50,10 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 
 ## Phase 5 — Export STL / GLB
 
-- [ ] `exportStl.ts` : intégration `STLExporter`, export binaire, déclenchement du téléchargement (`Blob` + lien `download`).
-- [ ] `exportGlb.ts` : intégration `GLTFExporter`, export `.glb`, déclenchement du téléchargement.
-- [ ] Boutons d'export dans l'UI, désactivés tant qu'aucun modèle n'a été généré.
-- [ ] Nommage des fichiers exportés (ex. horodatage ou nom d'exemple).
+- [x] `exportStl.ts` : intégration `STLExporter`, export binaire, déclenchement du téléchargement (`Blob` + lien `download`).
+- [x] `exportGlb.ts` : intégration `GLTFExporter`, export `.glb`, déclenchement du téléchargement.
+- [x] Boutons d'export dans l'UI, désactivés tant qu'aucun modèle n'a été généré.
+- [x] Nommage des fichiers exportés (horodatage + nom d'exemple, ex. `voxelcad-sphere-20260717-064746.stl`).
 
 ## Phase 6 — Build single-file
 

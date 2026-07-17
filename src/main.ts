@@ -11,6 +11,9 @@ import { createBoundsForm } from './ui/boundsForm';
 import { createProgress } from './ui/progress';
 import { createErrorPanel } from './ui/errorPanel';
 import { EXAMPLES, setupExampleSelector } from './ui/exampleSelector';
+import { exportStl } from './export/exportStl';
+import { exportGlb } from './export/exportGlb';
+import type { BufferGeometry } from 'three';
 
 initTheme();
 
@@ -25,12 +28,18 @@ const errorPanel = createErrorPanel(el('error-panel'));
 const estimateEl = el('voxel-estimate');
 const generateBtn = el<HTMLButtonElement>('generate');
 const statusEl = el('status');
+const exportStlBtn = el<HTMLButtonElement>('export-stl');
+const exportGlbBtn = el<HTMLButtonElement>('export-glb');
+
+let currentName = EXAMPLES[0].id;
+let lastGeometry: BufferGeometry | null = null;
 
 // ---------- Thème ----------
 el<HTMLButtonElement>('theme-toggle').addEventListener('click', () => toggleTheme());
 
 // ---------- Sélecteur d'exemples ----------
 setupExampleSelector(el<HTMLSelectElement>('example-select'), (example) => {
+  currentName = example.id;
   editor.setValue(example.code);
   boundsForm.setBounds(example.bounds);
   refreshEstimate();
@@ -123,6 +132,9 @@ async function generate(): Promise<void> {
       const geometry = buildVoxelMesh(msg.filled, msg.dims, bounds);
       const triangles = geometry.getAttribute('position').count / 3;
       viewer.setGeometry(geometry);
+      lastGeometry = geometry;
+      exportStlBtn.disabled = false;
+      exportGlbBtn.disabled = false;
       progress.stop();
       setStatus(`${msg.dims.nx}×${msg.dims.ny}×${msg.dims.nz} — ${NUMBER_FORMAT.format(triangles)} triangles`);
       cancelActiveWorker();
@@ -145,6 +157,22 @@ async function generate(): Promise<void> {
 
 generateBtn.addEventListener('click', () => {
   void generate();
+});
+
+// ---------- Export ----------
+function exportFilename(extension: string): string {
+  const now = new Date();
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  return `voxelcad-${currentName}-${stamp}.${extension}`;
+}
+
+exportStlBtn.addEventListener('click', () => {
+  if (lastGeometry) exportStl(lastGeometry, exportFilename('stl'));
+});
+
+exportGlbBtn.addEventListener('click', () => {
+  if (lastGeometry) void exportGlb(lastGeometry, exportFilename('glb'));
 });
 
 // Génère l'exemple par défaut au chargement.
