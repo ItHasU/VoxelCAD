@@ -1,64 +1,79 @@
 import { describe, expect, it } from 'vitest';
-import { computeDimensions, type GridDimensions } from './grid';
-import { buildVoxelMesh } from './meshing';
+import { computeDimensions, type GridBounds, type GridDimensions } from './grid';
+import { buildSmoothMesh } from './meshing';
 
-function makeFilled(
+/** Échantillonne un champ signé (négatif dedans) aux sommets de la grille. */
+function makeField(
   dims: GridDimensions,
-  predicate: (i: number, j: number, k: number) => boolean,
-): Uint8Array {
-  const filled = new Uint8Array(dims.nx * dims.ny * dims.nz);
+  bounds: GridBounds,
+  sdf: (x: number, y: number, z: number) => number,
+): Float32Array {
+  const field = new Float32Array(dims.nx * dims.ny * dims.nz);
   let index = 0;
   for (let k = 0; k < dims.nz; k++) {
     for (let j = 0; j < dims.ny; j++) {
       for (let i = 0; i < dims.nx; i++) {
-        filled[index] = predicate(i, j, k) ? 1 : 0;
-        index++;
+        field[index++] = sdf(
+          bounds.xMin + i * bounds.step,
+          bounds.yMin + j * bounds.step,
+          bounds.zMin + k * bounds.step,
+        );
       }
     }
   }
-  return filled;
+  return field;
 }
 
-describe('buildVoxelMesh', () => {
-  it('emits 6 faces (12 triangles) for a single filled voxel', () => {
-    const bounds = { xMin: 0, xMax: 0, yMin: 0, yMax: 0, zMin: 0, zMax: 0, step: 1 };
+describe('buildSmoothMesh', () => {
+  it('produces no geometry for an entirely-outside field', () => {
+    const bounds: GridBounds = { xMin: -2, xMax: 2, yMin: -2, yMax: 2, zMin: -2, zMax: 2, step: 1 };
     const dims = computeDimensions(bounds);
-    const filled = makeFilled(dims, () => true);
+    const field = makeField(dims, bounds, () => 1);
 
-    const geometry = buildVoxelMesh(filled, dims, bounds);
-
-    expect(geometry.getAttribute('position').count).toBe(6 * 6);
-  });
-
-  it('culls internal faces for a fully filled 2x2x2 grid', () => {
-    const bounds = { xMin: 0, xMax: 1, yMin: 0, yMax: 1, zMin: 0, zMax: 1, step: 1 };
-    const dims = computeDimensions(bounds);
-    const filled = makeFilled(dims, () => true);
-
-    const geometry = buildVoxelMesh(filled, dims, bounds);
-
-    // 6 sides of the outer cube, each made of 2x2 unit faces = 24 exposed faces.
-    expect(geometry.getAttribute('position').count).toBe(24 * 6);
-  });
-
-  it('produces no geometry for an entirely empty grid', () => {
-    const bounds = { xMin: 0, xMax: 1, yMin: 0, yMax: 1, zMin: 0, zMax: 1, step: 1 };
-    const dims = computeDimensions(bounds);
-    const filled = makeFilled(dims, () => false);
-
-    const geometry = buildVoxelMesh(filled, dims, bounds);
+    const geometry = buildSmoothMesh(field, dims, bounds);
 
     expect(geometry.getAttribute('position').count).toBe(0);
+    expect(geometry.getIndex()?.count ?? 0).toBe(0);
   });
 
-  it('only culls the shared face between two adjacent filled voxels', () => {
-    const bounds = { xMin: 0, xMax: 1, yMin: 0, yMax: 0, zMin: 0, zMax: 0, step: 1 };
+  it('extracts a closed, triangulated surface for a sphere field', () => {
+    const bounds: GridBounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3, zMin: -3, zMax: 3, step: 0.5 };
     const dims = computeDimensions(bounds);
-    const filled = makeFilled(dims, () => true);
+    // Sphère de rayon 2, bien à l'intérieur des bornes (surface fermée).
+    const field = makeField(dims, bounds, (x, y, z) => Math.hypot(x, y, z) - 2);
 
-    const geometry = buildVoxelMesh(filled, dims, bounds);
+    const geometry = buildSmoothMesh(field, dims, bounds);
+    const index = geometry.getIndex();
 
-    // 2 voxels * 6 faces - 2 shared internal faces = 10 exposed faces.
-    expect(geometry.getAttribute('position').count).toBe(10 * 6);
+    expect(index).not.toBeNull();
+    expect(index!.count).toBeGreaterThan(0);
+    expect(index!.count % 3).toBe(0); // uniquement des triangles
+    expect(geometry.getAttribute('normal')).toBeTruthy();
+
+    // Chaque sommet doit rester dans la boîte (rayon ~2, largement borné).
+    const pos = geometry.getAttribute('position');
+    for (let v = 0; v < pos.count; v++) {
+      expect(Math.abs(pos.getX(v))).toBeLessThanOrEqual(3.5);
+      expect(Math.abs(pos.getY(v))).toBeLessThanOrEqual(3.5);
+      expect(Math.abs(pos.getZ(v))).toBeLessThanOrEqual(3.5);
+    }
+  });
+
+  it('vertices approximate the target isosurface radius', () => {
+    const bounds: GridBounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3, zMin: -3, zMax: 3, step: 0.25 };
+    const dims = computeDimensions(bounds);
+    const field = makeField(dims, bounds, (x, y, z) => Math.hypot(x, y, z) - 2);
+
+    const geometry = buildSmoothMesh(field, dims, bounds);
+    const pos = geometry.getAttribute('position');
+
+    let sum = 0;
+    for (let v = 0; v < pos.count; v++) {
+      sum += Math.hypot(pos.getX(v), pos.getY(v), pos.getZ(v));
+    }
+    const meanRadius = sum / pos.count;
+    // La surface interpolée doit être proche du rayon 2 (à ~un pas près).
+    expect(meanRadius).toBeGreaterThan(1.8);
+    expect(meanRadius).toBeLessThan(2.2);
   });
 });

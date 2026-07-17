@@ -17,7 +17,8 @@ export interface SamplerProgressMessage {
 
 export interface SamplerResultMessage {
   type: 'result';
-  filled: Uint8Array;
+  /** Champ signé aux sommets de la grille : négatif à l'intérieur, positif dehors. */
+  field: Float32Array;
   dims: GridDimensions;
 }
 

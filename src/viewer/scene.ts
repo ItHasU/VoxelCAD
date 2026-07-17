@@ -86,7 +86,9 @@ export class Viewer {
       color: modelColor,
       roughness: 0.6,
       metalness: 0.05,
-      flatShading: true,
+      // Ombrage lisse : les normales moyennées du maillage Surface Nets donnent
+      // des surfaces douces plutôt que des facettes cubiques.
+      flatShading: false,
     });
 
     this.applyTheme(getTheme());

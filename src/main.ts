@@ -1,7 +1,7 @@
 import './style.css';
 import SamplerWorker from './voxel/sampler.worker.ts?worker&inline';
 import type { GridBounds } from './voxel/grid';
-import { buildVoxelMesh } from './voxel/meshing';
+import { buildSmoothMesh } from './voxel/meshing';
 import type { SamplerRequest, SamplerResponse } from './voxel/samplerProtocol';
 import { Viewer } from './viewer/scene';
 import { initTheme, toggleTheme } from './ui/theme';
@@ -170,8 +170,9 @@ async function generate(): Promise<void> {
       progress.update(msg.done, msg.total);
       setStatus(`Échantillonnage… ${NUMBER_FORMAT.format(msg.done)} / ${NUMBER_FORMAT.format(msg.total)}`);
     } else if (msg.type === 'result') {
-      const geometry = buildVoxelMesh(msg.filled, msg.dims, bounds);
-      const triangles = geometry.getAttribute('position').count / 3;
+      const geometry = buildSmoothMesh(msg.field, msg.dims, bounds);
+      const index = geometry.getIndex();
+      const triangles = (index ? index.count : geometry.getAttribute('position').count) / 3;
       viewer.setGeometry(geometry);
       lastGeometry = geometry;
       exportStlBtn.disabled = false;
