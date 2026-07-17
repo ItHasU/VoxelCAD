@@ -42,7 +42,6 @@ export class Viewer {
   private mesh: Mesh | null = null;
   private displayMode: DisplayMode = 'solid';
   private gridSpan = 20;
-  private gridGroundY = 0;
   private disposeResize: () => void;
   private disposeTheme: () => void;
   private frameHandle = 0;
@@ -141,39 +140,44 @@ export class Viewer {
 
   /**
    * Centre la vue sur l'origine (0, 0, 0) et zoome pour englober la zone de
-   * voxels. Le rayon retenu est la distance de l'origine au coin le plus
-   * éloigné de la bounding box, afin que tout le volume reste visible tout en
-   * gardant l'origine au centre.
+   * voxels. On part de la sphère englobante *serrée* de la géométrie, puis on
+   * prend un rayon englobant l'origine (`|centre| + rayon`) afin que tout le
+   * volume reste visible tout en gardant l'origine au centre de rotation.
    */
   private fitToObject(mesh: Mesh): void {
-    mesh.geometry.computeBoundingBox();
-    const box = mesh.geometry.boundingBox;
-    if (!box || box.isEmpty()) return;
+    mesh.geometry.computeBoundingSphere();
+    const sphere = mesh.geometry.boundingSphere;
+    if (!sphere || sphere.radius <= 0) return;
 
-    const radius = Math.max(box.min.length(), box.max.length(), 1);
+    const radius = Math.max(sphere.center.length() + sphere.radius, 0.5);
 
-    const fov = (this.camera.fov * Math.PI) / 180;
-    const distance = (radius / Math.sin(fov / 2)) * 1.1;
+    // Distance nécessaire pour que la sphère de rayon `radius` tienne dans le
+    // champ de vision, en tenant compte de l'aspect (le plus contraignant des
+    // deux axes vertical/horizontal).
+    const vFov = (this.camera.fov * Math.PI) / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * this.camera.aspect);
+    const fitFov = Math.min(vFov, hFov);
+    const distance = (radius / Math.sin(fitFov / 2)) * 1.15;
 
-    const direction = new Vector3(1, 0.8, 1).normalize();
+    const direction = new Vector3(1, 0.75, 1).normalize();
     this.camera.position.copy(direction).multiplyScalar(distance);
-    this.camera.near = distance / 100;
-    this.camera.far = distance * 100;
+    this.camera.near = Math.max(distance / 1000, 0.01);
+    this.camera.far = distance * 1000;
     this.camera.updateProjectionMatrix();
 
     this.controls.target.set(0, 0, 0);
     this.controls.update();
 
     this.gridSpan = radius * 2;
-    this.gridGroundY = Math.min(box.min.y, 0);
     this.rebuildGrid();
   }
 
   private buildGrid(): GridHelper {
     const [main, secondary] = GRID_COLORS[getTheme()];
-    const divisions = Math.min(Math.ceil(this.gridSpan), 200);
+    const divisions = Math.min(Math.max(Math.ceil(this.gridSpan), 2), 200);
     const grid = new GridHelper(this.gridSpan, divisions, main, secondary);
-    grid.position.y = this.gridGroundY;
+    // Grille centrée sur l'origine (0, 0, 0).
+    grid.position.set(0, 0, 0);
     return grid;
   }
 
