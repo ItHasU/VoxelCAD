@@ -59,6 +59,44 @@ describe('buildSmoothMesh', () => {
     }
   });
 
+  it('winds triangles so face normals point outward', () => {
+    const bounds: GridBounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3, zMin: -3, zMax: 3, step: 0.5 };
+    const dims = computeDimensions(bounds);
+    const field = makeField(dims, bounds, (x, y, z) => Math.hypot(x, y, z) - 2);
+
+    const geometry = buildSmoothMesh(field, dims, bounds);
+    const pos = geometry.getAttribute('position');
+    const index = geometry.getIndex()!;
+
+    let outward = 0;
+    const tris = index.count / 3;
+    for (let t = 0; t < index.count; t += 3) {
+      const a = index.getX(t);
+      const b = index.getX(t + 1);
+      const c = index.getX(t + 2);
+      const ax = pos.getX(a),
+        ay = pos.getY(a),
+        az = pos.getZ(a);
+      const bx = pos.getX(b),
+        by = pos.getY(b),
+        bz = pos.getZ(b);
+      const cx = pos.getX(c),
+        cy = pos.getY(c),
+        cz = pos.getZ(c);
+      // Normale géométrique (b-a) x (c-a).
+      const nx = (by - ay) * (cz - az) - (bz - az) * (cy - ay);
+      const ny = (bz - az) * (cx - ax) - (bx - ax) * (cz - az);
+      const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+      // Direction radiale sortante au barycentre (centre = origine).
+      const rx = (ax + bx + cx) / 3;
+      const ry = (ay + by + cy) / 3;
+      const rz = (az + bz + cz) / 3;
+      if (nx * rx + ny * ry + nz * rz > 0) outward++;
+    }
+    // La grande majorité des faces doit pointer vers l'extérieur.
+    expect(outward / tris).toBeGreaterThan(0.95);
+  });
+
   it('vertices approximate the target isosurface radius', () => {
     const bounds: GridBounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3, zMin: -3, zMax: 3, step: 0.25 };
     const dims = computeDimensions(bounds);

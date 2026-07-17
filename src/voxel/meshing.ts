@@ -131,10 +131,11 @@ function surfaceNets(data: Float32Array, dims: readonly [number, number, number]
           const vdu = buffer[m - du];
           const vdv = buffer[m - dv];
           const vduv = buffer[m - du - dv];
+          // Enroulement orienté vers l'extérieur (champ négatif à l'intérieur).
           if (mask & 1) {
-            indices.push(v0, vduv, vdu, v0, vdv, vduv);
+            indices.push(v0, vdu, vduv, v0, vduv, vdv);
           } else {
-            indices.push(v0, vduv, vdv, v0, vdu, vduv);
+            indices.push(v0, vdv, vduv, v0, vduv, vdu);
           }
         }
       }
