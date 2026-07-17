@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#7a2ff0"/>
+  <!-- Cube isométrique (voxel) -->
+  <!-- Face du dessus -->
+  <polygon points="256,100 400,183 256,266 112,183" fill="#ffffff"/>
+  <!-- Face gauche -->
+  <polygon points="112,183 256,266 256,412 112,329" fill="#cdb6ff"/>
+  <!-- Face droite -->
+  <polygon points="400,183 256,266 256,412 400,329" fill="#a883f0"/>
+  <!-- Rainures voxel (subdivision) -->
+  <g stroke="#6417c9" stroke-width="4" stroke-opacity="0.35" fill="none" stroke-linejoin="round">
+    <polyline points="184,141 328,224 328,370"/>
+    <polyline points="328,141 184,224 184,370"/>
+    <polyline points="112,183 256,266 400,183"/>
+    <polyline points="256,266 256,412"/>
+  </g>
+</svg>

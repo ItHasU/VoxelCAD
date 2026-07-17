@@ -17,8 +17,10 @@ import { setupCollapsiblePanel } from './ui/panels';
 import { loadCodeFile, saveCode, splitLoadedCode } from './editor/codeFile';
 import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
+import { registerServiceWorker } from './pwa';
 
 initTheme();
+registerServiceWorker();
 
 const el = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 

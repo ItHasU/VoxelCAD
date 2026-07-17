@@ -47,6 +47,7 @@ const isInside = vcad
 - **Monaco Editor** pour l'édition de code intégrée (coloration, autocomplétion, vérification de types TypeScript).
 - **three.js** pour le rendu 3D (scène, `OrbitControls`, export `STLExporter` / `GLTFExporter`).
 - Pas de framework UI : DOM/TypeScript vanilla, pour garder le bundle single-file raisonnable.
+- **PWA** : l'app est installable et fonctionne hors ligne. Un manifeste (`public/manifest.webmanifest`) et un service worker (`public/sw.js`, cache d'abord + repli réseau) mettent en cache la coquille autonome. Le service worker n'est actif que sur la version servie en http(s)/localhost (pas en `file://` ni en dev).
 
 Le détail des choix techniques et leurs justifications est dans [docs/DECISIONS.md](docs/DECISIONS.md). L'architecture (modules, flux de données, algorithme de meshing voxel) est dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). La liste des tâches est dans [docs/TASKS.md](docs/TASKS.md).
 
@@ -55,8 +56,8 @@ Le détail des choix techniques et leurs justifications est dans [docs/DECISIONS
 ```bash
 npm install
 npm run dev      # serveur de dev Vite avec watch + refresh automatique
-npm run build    # génère dist/index.html (fichier HTML autonome)
-npm run preview  # sert le build de production en local
+npm run build    # génère dist/ (index.html autonome + manifeste, service worker, icônes PWA)
+npm run preview  # sert le build de production en local (nécessaire pour tester la PWA : install + hors ligne)
 npm run lint      # ESLint
 npm run format    # Prettier
 ```
