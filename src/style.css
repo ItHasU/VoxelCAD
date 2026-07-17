@@ -306,6 +306,11 @@ body {
   min-height: 0;
 }
 
+.fab-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
 .status-badge {
   position: fixed;
   z-index: 15;

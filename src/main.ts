@@ -14,7 +14,7 @@ import { EXAMPLES, setupExampleSelector } from './ui/exampleSelector';
 import { exportStl } from './export/exportStl';
 import { exportGlb } from './export/exportGlb';
 import { setupCollapsiblePanel } from './ui/panels';
-import { loadCodeFile, saveCode } from './editor/codeFile';
+import { loadCodeFile, saveCode, splitLoadedCode } from './editor/codeFile';
 import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
 
@@ -65,17 +65,24 @@ displayModeGroup.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => 
 
 // ---------- Sauvegarde / chargement du code ----------
 el<HTMLButtonElement>('save-code').addEventListener('click', () => {
-  saveCode(editor.getValue(), `voxelcad-${currentName}.ts`);
+  const result = boundsForm.getBounds();
+  const bounds = result.bounds ?? EXAMPLES[0].bounds;
+  saveCode(editor.getValue(), bounds, `voxelcad-${currentName}.ts`);
 });
 
 el<HTMLButtonElement>('load-code').addEventListener('click', () => {
-  void loadCodeFile().then((code) => {
-    if (code === null) return;
+  void loadCodeFile().then((content) => {
+    if (content === null) return;
+    const { code, bounds } = splitLoadedCode(content);
     editor.setValue(code);
+    if (bounds) boundsForm.setBounds(bounds);
     currentName = 'custom';
     refreshEstimate();
   });
 });
+
+// ---------- Recentrage / auto-zoom ----------
+el<HTMLButtonElement>('recenter').addEventListener('click', () => viewer.recenter());
 
 // ---------- Sélecteur d'exemples ----------
 setupExampleSelector(el<HTMLSelectElement>('example-select'), (example) => {

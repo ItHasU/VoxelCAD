@@ -26,6 +26,9 @@
             <span class="field-label">Exemple</span>
             <select id="example-select" class="select"></select>
           </label>
+          <button id="recenter" class="icon-button" type="button" title="Recentrer la vue (auto-zoom sur l'origine)" aria-label="Recentrer la vue">
+            <span class="fab-icon" aria-hidden="true">⌖</span>
+          </button>
           <button id="theme-toggle" class="icon-button" type="button" aria-label="Basculer le thème">
             <span class="theme-icon" aria-hidden="true"></span>
           </button>
@@ -67,6 +70,10 @@
         <div id="error-panel" class="error-panel" hidden></div>
       </aside>
       <button class="reopen-tab reopen-tab--right" id="reopen-params" type="button" hidden>Paramètres</button>
+
+      <button id="recenter" class="fab" type="button" title="Recentrer la vue (auto-zoom sur l'origine)" aria-label="Recentrer la vue">
+        <span class="fab-icon" aria-hidden="true">⌖</span>
+      </button>
 
       <div id="status" class="status-badge" hidden></div>
     </div>

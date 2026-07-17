@@ -78,4 +78,6 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 - [x] Caméra centrée sur l'origine (0,0,0) avec auto-zoom sur la zone de voxels.
 - [x] Modes d'affichage du modèle : plein, semi-transparent, filaire.
 - [x] Grille de repère recentrée sur l'origine (0,0,0).
-- [x] Sauvegarde / chargement du code `isInside` dans un fichier `.ts`.
+- [x] Sauvegarde / chargement du code `isInside` dans un fichier `.ts` (bornes incluses en commentaire `// voxelcad:bounds`, réappliquées au chargement).
+- [x] Correction du dimensionnement du canvas sur écran HiDPI (le canvas débordait et décentrait la rotation).
+- [x] Bouton « recentrer » (auto-zoom + rotation sur l'origine) dans la toolbar.

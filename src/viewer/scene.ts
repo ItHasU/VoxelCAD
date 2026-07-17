@@ -82,7 +82,7 @@ export class Viewer {
     this.disposeTheme = onThemeChange((theme) => this.applyTheme(theme));
 
     const rect = container.getBoundingClientRect();
-    this.setSize(rect.width || 1, rect.height || 1);
+    this.setSize(rect.width || window.innerWidth, rect.height || window.innerHeight);
     this.disposeResize = observeResize(container, (w, h) => this.setSize(w, h));
 
     this.animate();
@@ -94,7 +94,10 @@ export class Viewer {
   }
 
   private setSize(width: number, height: number): void {
-    this.renderer.setSize(width, height, false);
+    if (width <= 0 || height <= 0) return;
+    // updateStyle = true : le canvas prend la taille CSS du conteneur, sinon
+    // sur écran HiDPI (devicePixelRatio > 1) il déborde et décentre la vue.
+    this.renderer.setSize(width, height, true);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
@@ -115,6 +118,21 @@ export class Viewer {
     this.mesh = new Mesh(geometry, this.material);
     this.scene.add(this.mesh);
     this.fitToObject(this.mesh);
+  }
+
+  /**
+   * Recadre la vue : recentre la rotation sur l'origine et rejoue l'auto-zoom
+   * sur le volume courant (ou une vue par défaut si aucun modèle n'est chargé).
+   */
+  recenter(): void {
+    if (this.mesh) {
+      this.fitToObject(this.mesh);
+    } else {
+      this.camera.position.set(8, 6, 8);
+      this.camera.updateProjectionMatrix();
+      this.controls.target.set(0, 0, 0);
+      this.controls.update();
+    }
   }
 
   private clearMesh(): void {
