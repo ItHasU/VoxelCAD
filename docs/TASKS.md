@@ -77,3 +77,5 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 - [x] Exemple booléen « Cube − sphère » (différence de deux volumes).
 - [x] Caméra centrée sur l'origine (0,0,0) avec auto-zoom sur la zone de voxels.
 - [x] Modes d'affichage du modèle : plein, semi-transparent, filaire.
+- [x] Grille de repère recentrée sur l'origine (0,0,0).
+- [x] Sauvegarde / chargement du code `isInside` dans un fichier `.ts`.

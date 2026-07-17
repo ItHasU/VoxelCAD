@@ -35,8 +35,12 @@
       <!-- Panneaux flottants, repliables -->
       <aside class="panel panel--editor" id="panel-editor">
         <div class="panel-header">
-          <h2 class="panel-title">Fonction <code>isInside(x, y, z)</code></h2>
-          <button class="collapse-btn" type="button" data-target="panel-editor" aria-label="Replier">‹</button>
+          <h2 class="panel-title"><code>isInside(x, y, z)</code></h2>
+          <div class="panel-actions">
+            <button id="load-code" class="text-button" type="button" title="Charger un fichier .ts">Charger</button>
+            <button id="save-code" class="text-button" type="button" title="Enregistrer en .ts">Enregistrer</button>
+            <button class="collapse-btn" type="button" data-target="panel-editor" aria-label="Replier">‹</button>
+          </div>
         </div>
         <div id="editor" class="editor-host"></div>
       </aside>

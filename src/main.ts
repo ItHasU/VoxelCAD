@@ -14,6 +14,7 @@ import { EXAMPLES, setupExampleSelector } from './ui/exampleSelector';
 import { exportStl } from './export/exportStl';
 import { exportGlb } from './export/exportGlb';
 import { setupCollapsiblePanel } from './ui/panels';
+import { loadCodeFile, saveCode } from './editor/codeFile';
 import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
 
@@ -59,6 +60,20 @@ displayModeGroup.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => 
       .querySelectorAll('button')
       .forEach((b) => b.classList.toggle('is-active', b === btn));
     viewer.setDisplayMode(btn.dataset.mode as DisplayMode);
+  });
+});
+
+// ---------- Sauvegarde / chargement du code ----------
+el<HTMLButtonElement>('save-code').addEventListener('click', () => {
+  saveCode(editor.getValue(), `voxelcad-${currentName}.ts`);
+});
+
+el<HTMLButtonElement>('load-code').addEventListener('click', () => {
+  void loadCodeFile().then((code) => {
+    if (code === null) return;
+    editor.setValue(code);
+    currentName = 'custom';
+    refreshEstimate();
   });
 });
 
