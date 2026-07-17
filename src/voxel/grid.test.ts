@@ -105,9 +105,9 @@ describe('forEachCell', () => {
 });
 
 describe('checkVoxelCount', () => {
-  it('flags ok/warn/block based on thresholds', () => {
-    expect(checkVoxelCount(10, 100, 1000)).toBe('ok');
-    expect(checkVoxelCount(500, 100, 1000)).toBe('warn');
-    expect(checkVoxelCount(5000, 100, 1000)).toBe('block');
+  it('flags warn only above the threshold, never blocks', () => {
+    expect(checkVoxelCount(10, 100)).toBe('ok');
+    expect(checkVoxelCount(500, 100)).toBe('warn');
+    expect(checkVoxelCount(5_000_000, 100)).toBe('warn');
   });
 });

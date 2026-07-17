@@ -81,16 +81,16 @@ export function forEachCell(
 }
 
 export const DEFAULT_VOXEL_WARN_THRESHOLD = 500_000;
-export const DEFAULT_VOXEL_BLOCK_THRESHOLD = 5_000_000;
 
-export type VoxelCountStatus = 'ok' | 'warn' | 'block';
+export type VoxelCountStatus = 'ok' | 'warn';
 
+/**
+ * Évalue le nombre de voxels : `warn` au-delà du seuil (calcul potentiellement
+ * long), sinon `ok`. Aucun blocage — l'utilisateur reste libre de générer.
+ */
 export function checkVoxelCount(
   total: number,
   warnThreshold: number = DEFAULT_VOXEL_WARN_THRESHOLD,
-  blockThreshold: number = DEFAULT_VOXEL_BLOCK_THRESHOLD,
 ): VoxelCountStatus {
-  if (total > blockThreshold) return 'block';
-  if (total > warnThreshold) return 'warn';
-  return 'ok';
+  return total > warnThreshold ? 'warn' : 'ok';
 }

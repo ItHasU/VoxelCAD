@@ -115,8 +115,7 @@ export function createBoundsForm(form: HTMLFormElement, initial: GridBounds): Bo
       const bounds = readBounds();
       if (!bounds) return { ok: false, count: 0, status: 'invalid' };
       const count = voxelCount(computeDimensions(bounds));
-      const status = checkVoxelCount(count);
-      return { ok: status !== 'block', bounds, count, status };
+      return { ok: true, bounds, count, status: checkVoxelCount(count) };
     },
     setBounds(bounds: GridBounds): void {
       refs.step.value = String(bounds.step);

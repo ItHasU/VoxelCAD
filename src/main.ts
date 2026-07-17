@@ -13,6 +13,8 @@ import { createErrorPanel } from './ui/errorPanel';
 import { EXAMPLES, setupExampleSelector } from './ui/exampleSelector';
 import { exportStl } from './export/exportStl';
 import { exportGlb } from './export/exportGlb';
+import { setupCollapsiblePanel } from './ui/panels';
+import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
 
 initTheme();
@@ -37,6 +39,29 @@ let lastGeometry: BufferGeometry | null = null;
 // ---------- Thème ----------
 el<HTMLButtonElement>('theme-toggle').addEventListener('click', () => toggleTheme());
 
+// ---------- Panneaux repliables ----------
+setupCollapsiblePanel(
+  el('panel-editor'),
+  el('panel-editor').querySelector<HTMLButtonElement>('.collapse-btn')!,
+  el('reopen-editor'),
+);
+setupCollapsiblePanel(
+  el('panel-params'),
+  el('panel-params').querySelector<HTMLButtonElement>('.collapse-btn')!,
+  el('reopen-params'),
+);
+
+// ---------- Mode d'affichage ----------
+const displayModeGroup = el('display-mode');
+displayModeGroup.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    displayModeGroup
+      .querySelectorAll('button')
+      .forEach((b) => b.classList.toggle('is-active', b === btn));
+    viewer.setDisplayMode(btn.dataset.mode as DisplayMode);
+  });
+});
+
 // ---------- Sélecteur d'exemples ----------
 setupExampleSelector(el<HTMLSelectElement>('example-select'), (example) => {
   currentName = example.id;
@@ -59,17 +84,11 @@ function refreshEstimate(): void {
   }
 
   estimateEl.innerHTML = `Voxels estimés : <strong>${NUMBER_FORMAT.format(result.count)}</strong>`;
-  if (result.status === 'block') {
-    estimateEl.classList.add('is-block');
-    estimateEl.append(' — trop élevé, réduisez les bornes ou augmentez le pas.');
-    generateBtn.disabled = true;
-  } else if (result.status === 'warn') {
+  if (result.status === 'warn') {
     estimateEl.classList.add('is-warn');
     estimateEl.append(' — calcul potentiellement long.');
-    generateBtn.disabled = false;
-  } else {
-    generateBtn.disabled = false;
   }
+  generateBtn.disabled = false;
 }
 
 boundsForm.onChange(refreshEstimate);

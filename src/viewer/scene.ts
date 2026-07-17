@@ -7,7 +7,6 @@ import {
   MeshStandardMaterial,
   PerspectiveCamera,
   Scene,
-  Sphere,
   Vector3,
   WebGLRenderer,
 } from 'three';
@@ -30,6 +29,8 @@ const GRID_COLORS: Record<Theme, [number, number]> = {
   light: [0xc2c6d0, 0xd8dbe2],
 };
 
+export type DisplayMode = 'solid' | 'translucent' | 'wireframe';
+
 export class Viewer {
   private readonly renderer: WebGLRenderer;
   private readonly scene: Scene;
@@ -39,6 +40,7 @@ export class Viewer {
   private gridHelper: GridHelper;
 
   private mesh: Mesh | null = null;
+  private displayMode: DisplayMode = 'solid';
   private gridSpan = 20;
   private gridGroundY = 0;
   private disposeResize: () => void;
@@ -123,33 +125,47 @@ export class Viewer {
     this.mesh = null;
   }
 
-  /** Cadre la caméra sur la bounding box du mesh donné. */
+  /** Bascule le rendu du modèle entre plein, semi-transparent et filaire. */
+  setDisplayMode(mode: DisplayMode): void {
+    this.displayMode = mode;
+    this.material.wireframe = mode === 'wireframe';
+    this.material.transparent = mode === 'translucent';
+    this.material.opacity = mode === 'translucent' ? 0.45 : 1;
+    this.material.depthWrite = mode !== 'translucent';
+    this.material.needsUpdate = true;
+  }
+
+  getDisplayMode(): DisplayMode {
+    return this.displayMode;
+  }
+
+  /**
+   * Centre la vue sur l'origine (0, 0, 0) et zoome pour englober la zone de
+   * voxels. Le rayon retenu est la distance de l'origine au coin le plus
+   * éloigné de la bounding box, afin que tout le volume reste visible tout en
+   * gardant l'origine au centre.
+   */
   private fitToObject(mesh: Mesh): void {
     mesh.geometry.computeBoundingBox();
     const box = mesh.geometry.boundingBox;
     if (!box || box.isEmpty()) return;
 
-    const sphere = new Sphere();
-    box.getBoundingSphere(sphere);
-    const center = sphere.center;
-    const radius = sphere.radius || 1;
+    const radius = Math.max(box.min.length(), box.max.length(), 1);
 
     const fov = (this.camera.fov * Math.PI) / 180;
-    const distance = (radius / Math.sin(fov / 2)) * 1.2;
+    const distance = (radius / Math.sin(fov / 2)) * 1.1;
 
     const direction = new Vector3(1, 0.8, 1).normalize();
-    this.camera.position.copy(center).addScaledVector(direction, distance);
+    this.camera.position.copy(direction).multiplyScalar(distance);
     this.camera.near = distance / 100;
     this.camera.far = distance * 100;
     this.camera.updateProjectionMatrix();
 
-    this.controls.target.copy(center);
+    this.controls.target.set(0, 0, 0);
     this.controls.update();
 
-    const size = new Vector3();
-    box.getSize(size);
-    this.gridSpan = Math.max(size.x, size.z, 1) * 2;
-    this.gridGroundY = box.min.y;
+    this.gridSpan = radius * 2;
+    this.gridGroundY = Math.min(box.min.y, 0);
     this.rebuildGrid();
   }
 

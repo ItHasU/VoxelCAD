@@ -8,12 +8,20 @@
   </head>
   <body>
     <div id="app">
+      <!-- Vue 3D plein écran, en fond de page -->
+      <div id="viewer" class="viewer-bg"></div>
+
       <header class="toolbar">
         <div class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
           <span class="brand-name">VoxelCAD</span>
         </div>
         <div class="toolbar-controls">
+          <div class="segmented" id="display-mode" role="group" aria-label="Mode d'affichage">
+            <button type="button" data-mode="solid" class="is-active">Plein</button>
+            <button type="button" data-mode="translucent">Semi</button>
+            <button type="button" data-mode="wireframe">Filaire</button>
+          </div>
           <label class="field field--inline">
             <span class="field-label">Exemple</span>
             <select id="example-select" class="select"></select>
@@ -24,39 +32,39 @@
         </div>
       </header>
 
-      <main class="workspace">
-        <section class="panel panel--editor">
-          <div class="panel-header">
-            <h2 class="panel-title">Fonction <code>isInside(x, y, z)</code></h2>
-          </div>
-          <div id="editor" class="editor-host"></div>
-        </section>
+      <!-- Panneaux flottants, repliables -->
+      <aside class="panel panel--editor" id="panel-editor">
+        <div class="panel-header">
+          <h2 class="panel-title">Fonction <code>isInside(x, y, z)</code></h2>
+          <button class="collapse-btn" type="button" data-target="panel-editor" aria-label="Replier">‹</button>
+        </div>
+        <div id="editor" class="editor-host"></div>
+      </aside>
+      <button class="reopen-tab reopen-tab--left" id="reopen-editor" type="button" hidden>Éditeur</button>
 
-        <section class="panel panel--viewer">
-          <div id="viewer" class="viewer-host"></div>
-          <div id="status" class="status-badge" hidden></div>
-        </section>
+      <aside class="panel panel--params" id="panel-params">
+        <div class="panel-header">
+          <h2 class="panel-title">Paramètres</h2>
+          <button class="collapse-btn" type="button" data-target="panel-params" aria-label="Replier">›</button>
+        </div>
+        <form id="bounds-form" class="params-body"></form>
+        <div class="params-footer">
+          <div id="voxel-estimate" class="estimate"></div>
+          <button id="generate" class="button button--primary" type="button">Générer</button>
+          <div class="export-row">
+            <button id="export-stl" class="button button--ghost" type="button" disabled>Export STL</button>
+            <button id="export-glb" class="button button--ghost" type="button" disabled>Export GLB</button>
+          </div>
+        </div>
+        <div id="progress" class="progress" hidden>
+          <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+          <button id="cancel" class="button button--ghost" type="button">Annuler</button>
+        </div>
+        <div id="error-panel" class="error-panel" hidden></div>
+      </aside>
+      <button class="reopen-tab reopen-tab--right" id="reopen-params" type="button" hidden>Paramètres</button>
 
-        <aside class="panel panel--params">
-          <div class="panel-header">
-            <h2 class="panel-title">Paramètres</h2>
-          </div>
-          <form id="bounds-form" class="params-body"></form>
-          <div class="params-footer">
-            <div id="voxel-estimate" class="estimate"></div>
-            <button id="generate" class="button button--primary" type="button">Générer</button>
-            <div class="export-row">
-              <button id="export-stl" class="button button--ghost" type="button" disabled>Export STL</button>
-              <button id="export-glb" class="button button--ghost" type="button" disabled>Export GLB</button>
-            </div>
-          </div>
-          <div id="progress" class="progress" hidden>
-            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
-            <button id="cancel" class="button button--ghost" type="button">Annuler</button>
-          </div>
-          <div id="error-panel" class="error-panel" hidden></div>
-        </aside>
-      </main>
+      <div id="status" class="status-badge" hidden></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

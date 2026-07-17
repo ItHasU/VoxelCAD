@@ -64,7 +64,16 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 ## Phase 7 — Polish
 
 - [ ] Gestion des cas limites de perf (grosses grilles) : messages d'avertissement clairs, annulation propre.
-- [ ] Responsive de base (mise en page éditeur/viewer/formulaire).
+- [x] Responsive de base (mise en page éditeur/viewer/formulaire).
 - [ ] Revue des messages d'erreur utilisateur (compilation TS, exécution `isInside`, bornes invalides).
 - [ ] Mise à jour finale du README (captures d'écran optionnelles, instructions d'usage).
 - [ ] (Optionnel) Tests end-to-end basiques (ex. Playwright) sur le parcours "choisir un exemple → générer → exporter".
+
+## Améliorations UX (post-plan initial)
+
+- [x] Vue 3D en fond de page plein écran ; toolbar et panneaux flottent par-dessus.
+- [x] Panneaux éditeur/paramètres repliables (onglet de réouverture sur le bord).
+- [x] Suppression de la limite bloquante sur le nombre de voxels (avertissement informatif conservé).
+- [x] Exemple booléen « Cube − sphère » (différence de deux volumes).
+- [x] Caméra centrée sur l'origine (0,0,0) avec auto-zoom sur la zone de voxels.
+- [x] Modes d'affichage du modèle : plein, semi-transparent, filaire.
