@@ -3,6 +3,7 @@ import { typescript as monacoTs } from 'monaco-editor';
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&inline';
 import { getTheme, onThemeChange, type Theme } from '../ui/theme';
+import { VCAD_AMBIENT } from './vcadTypes';
 
 // Workers inline pour rester compatibles avec le build single-file.
 self.MonacoEnvironment = {
@@ -14,11 +15,9 @@ self.MonacoEnvironment = {
   },
 };
 
-// Type de référence disponible pour l'utilisateur, sans imposer d'import.
-const AMBIENT_LIB = `
-/** Signature attendue par VoxelCAD. */
-type IsInside = (x: number, y: number, z: number) => boolean;
-`;
+// Types de référence disponibles pour l'utilisateur (vcad, Solid, isInside),
+// sans imposer d'import.
+const AMBIENT_LIB = VCAD_AMBIENT;
 
 function monacoThemeFor(theme: Theme): string {
   return theme === 'dark' ? 'vs-dark' : 'vs';

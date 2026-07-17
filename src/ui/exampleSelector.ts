@@ -3,6 +3,7 @@ import * as cube from '../editor/examples/cube';
 import * as sphere from '../editor/examples/sphere';
 import * as cylinder from '../editor/examples/cylinder';
 import * as difference from '../editor/examples/difference';
+import * as vcadExample from '../editor/examples/vcad';
 
 export interface Example {
   id: string;
@@ -21,6 +22,7 @@ export const EXAMPLES: Example[] = [
     code: difference.code,
     bounds: difference.bounds,
   },
+  { id: 'vcad', label: 'API vcad (CSG)', code: vcadExample.code, bounds: vcadExample.bounds },
 ];
 
 export function setupExampleSelector(

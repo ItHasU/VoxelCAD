@@ -12,6 +12,34 @@ Outil web pour générer des volumes 3D par échantillonnage voxel à partir d'u
 
 Des exemples de volumes sont fournis pour démarrer rapidement : cube, sphère, cylindre.
 
+## API `vcad` (géométrie constructive)
+
+Plutôt que d'écrire `isInside` à la main, on peut composer des formes avec la
+bibliothèque `vcad`, disponible sans import dans l'éditeur. Chaque forme est un
+champ de distance signée ; les opérations booléennes et les transformations se
+chaînent, et le résultat s'assigne à `isInside` :
+
+```ts
+const isInside = vcad.sphere(5).translate(2, 2, 2);
+
+const isInside = vcad
+  .cube(8)
+  .difference(vcad.sphere(5.2)) // creuse une sphère
+  .union(vcad.torus(4, 1).rotateX(90));
+```
+
+- **Primitives** (centrées sur l'origine) : `sphere(r)`, `box(w, h, d)`,
+  `cube(size)`, `cylinder(rayon, hauteur)` (axe Y), `torus(rayon, section)` (axe Y).
+- **Booléens** : `union`, `intersection`, `difference` — en fonctions
+  (`vcad.union(a, b)`) ou en méthodes chaînées (`a.union(b)`).
+- **Transformations** : `translate(dx, dy, dz)`, `scale(s)` ou `scale(sx, sy, sz)`,
+  `rotateX/rotateY/rotateZ(degrés)`.
+- **Bonus** : `shell(épaisseur)` (coque creuse), `round(rayon)` (arêtes arrondies),
+  `distance(x, y, z)` (distance signée brute).
+
+> Le résultat de `vcad` se déclare avec `const isInside = …` (ou `function isInside(…)`
+> pour la forme manuelle). Voir `src/voxel/vcad.ts`.
+
 ## Stack technique
 
 - **TypeScript** de bout en bout.

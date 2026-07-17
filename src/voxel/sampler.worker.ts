@@ -2,6 +2,7 @@
 
 import { cellCoords, computeDimensions, forEachCell, voxelCount } from './grid';
 import type { SamplerRequest, SamplerResponse } from './samplerProtocol';
+import { vcad } from './vcad';
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 
@@ -15,8 +16,11 @@ class SamplerRuntimeError extends Error {
 }
 
 function compileIsInside(code: string): (x: number, y: number, z: number) => boolean {
-  const factory = new Function(`${code}\n;return isInside;`);
-  const fn = factory();
+  // `vcad` est passé en paramètre lexical (pas via une variable globale) : le
+  // code utilisateur peut le référencer, et `isInside` (déclaré par une fonction
+  // ou un `const`) est renvoyé depuis la portée locale de la fabrique.
+  const factory = new Function('vcad', `${code}\n;return isInside;`);
+  const fn = factory(vcad);
   if (typeof fn !== 'function') {
     throw new Error("Le code doit définir une fonction isInside(x, y, z): boolean.");
   }
