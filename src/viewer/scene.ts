@@ -1,8 +1,10 @@
 import {
   AmbientLight,
+  AxesHelper,
   BufferGeometry,
   DirectionalLight,
   GridHelper,
+  LineBasicMaterial,
   Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
@@ -37,6 +39,7 @@ export class Viewer {
   private readonly camera: PerspectiveCamera;
   private readonly controls: OrbitControls;
   private readonly material: MeshStandardMaterial;
+  private readonly axes: AxesHelper;
   private gridHelper: GridHelper;
 
   private mesh: Mesh | null = null;
@@ -70,6 +73,14 @@ export class Viewer {
 
     this.gridHelper = this.buildGrid();
     this.scene.add(this.gridHelper);
+
+    // Repère X/Y/Z (rouge/vert/bleu) de 1 unité à l'origine, toujours visible.
+    this.axes = new AxesHelper(1);
+    const axesMaterial = this.axes.material as LineBasicMaterial;
+    axesMaterial.depthTest = false;
+    axesMaterial.transparent = true;
+    this.axes.renderOrder = 999;
+    this.scene.add(this.axes);
 
     this.material = new MeshStandardMaterial({
       color: modelColor,
@@ -216,6 +227,7 @@ export class Viewer {
     this.controls.dispose();
     this.material.dispose();
     this.gridHelper.geometry.dispose();
+    this.axes.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

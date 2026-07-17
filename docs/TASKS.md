@@ -81,3 +81,4 @@ Backlog organisé par phases. Chaque phase produit un incrément utilisable/test
 - [x] Sauvegarde / chargement du code `isInside` dans un fichier `.ts` (bornes incluses en commentaire `// voxelcad:bounds`, réappliquées au chargement).
 - [x] Correction du dimensionnement du canvas sur écran HiDPI (le canvas débordait et décentrait la rotation).
 - [x] Bouton « recentrer » (auto-zoom + rotation sur l'origine) dans la toolbar.
+- [x] Repère d'axes X/Y/Z (rouge/vert/bleu) de 1 unité à l'origine, toujours visible.
