@@ -7,7 +7,7 @@ Outil web pour générer des volumes 3D par échantillonnage voxel à partir d'u
 1. L'utilisateur écrit une fonction TypeScript `isInside(x, y, z): boolean` dans un éditeur de code intégré à la page (Monaco Editor).
 2. Il définit les bornes du volume (min/max sur X, Y, Z) et un pas de calcul.
 3. L'outil échantillonne la grille 3D résultante : un champ signé est évalué à chaque sommet (la distance signée pour les formes `vcad`, sinon ±1 dedans/dehors).
-4. La surface (isovaleur 0) est extraite en un maillage lissé et triangulé par *Surface Nets* — plus de facettes cubiques — puis affichée dans un viewer 3D interactif (rotation, déplacement, zoom).
+4. La surface est convertie en maillage selon le **mode de maillage** choisi (sélecteur « Maillage » de la barre d'outils) : *Lissé (Surface Nets)* extrait l'isosurface (isovaleur 0) en triangles doux — plus de facettes cubiques —, ou *Cubes (voxels)* rend un cube plein par cellule intérieure (aspect en marches d'escalier). Le résultat est affiché dans un viewer 3D interactif (rotation, déplacement, zoom). Changer de mode re-maille instantanément, sans ré-échantillonner.
 5. Le modèle peut être exporté en `.stl` ou `.glb`.
 
 Des exemples de volumes sont fournis pour démarrer rapidement : cube, sphère, cylindre.

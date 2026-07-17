@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import type { GridBounds, GridDimensions } from './grid';
+import { cellIndex, type GridBounds, type GridDimensions } from './grid';
 
 /*
  * Extraction d'iso-surface par « Naive Surface Nets » (S. F. Gibson,
@@ -188,4 +188,112 @@ export function buildSmoothMesh(
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   return geometry;
+}
+
+// --- Maillage cubique (« voxels ») -----------------------------------------
+
+interface FaceSpec {
+  di: number;
+  dj: number;
+  dk: number;
+  normal: readonly [number, number, number];
+  corners: readonly [
+    readonly [number, number, number],
+    readonly [number, number, number],
+    readonly [number, number, number],
+    readonly [number, number, number],
+  ];
+}
+
+// Coins en offsets unitaires (0/1), listés CCW vus de l'extérieur de la face,
+// de sorte que (v1 - v0) x (v2 - v0) pointe le long de `normal`.
+const FACES: readonly FaceSpec[] = [
+  { di: 1, dj: 0, dk: 0, normal: [1, 0, 0], corners: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]] },
+  { di: -1, dj: 0, dk: 0, normal: [-1, 0, 0], corners: [[0, 0, 1], [0, 1, 1], [0, 1, 0], [0, 0, 0]] },
+  { di: 0, dj: 1, dk: 0, normal: [0, 1, 0], corners: [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]] },
+  { di: 0, dj: -1, dk: 0, normal: [0, -1, 0], corners: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 0, 1]] },
+  { di: 0, dj: 0, dk: 1, normal: [0, 0, 1], corners: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]] },
+  { di: 0, dj: 0, dk: -1, normal: [0, 0, -1], corners: [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0]] },
+];
+
+/**
+ * Maillage « voxel » historique : un cube plein (de la taille du pas) par
+ * cellule intérieure (champ < 0), en n'émettant que les faces exposées à une
+ * cellule vide ou hors grille. Aspect en marches d'escalier, faces carrées.
+ */
+export function buildBlockyMesh(
+  field: Float32Array,
+  dims: GridDimensions,
+  bounds: GridBounds,
+): BufferGeometry {
+  const { nx, ny, nz } = dims;
+  const step = bounds.step;
+
+  function isFilled(i: number, j: number, k: number): boolean {
+    if (i < 0 || j < 0 || k < 0 || i >= nx || j >= ny || k >= nz) return false;
+    return field[cellIndex(dims, i, j, k)] < 0;
+  }
+
+  const positions: number[] = [];
+  const normals: number[] = [];
+
+  for (let k = 0; k < nz; k++) {
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        if (!isFilled(i, j, k)) continue;
+        const ox = bounds.xMin + i * step;
+        const oy = bounds.yMin + j * step;
+        const oz = bounds.zMin + k * step;
+
+        for (const face of FACES) {
+          if (isFilled(i + face.di, j + face.dj, k + face.dk)) continue;
+
+          const quad = face.corners.map(
+            ([cx, cy, cz]) => [ox + cx * step, oy + cy * step, oz + cz * step] as const,
+          );
+          const [v0, v1, v2, v3] = quad;
+
+          positions.push(...v0, ...v1, ...v2, ...v0, ...v2, ...v3);
+          for (let n = 0; n < 6; n++) normals.push(...face.normal);
+        }
+      }
+    }
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
+  return geometry;
+}
+
+// --- Registre des modes de maillage ----------------------------------------
+
+export type MeshingMode = 'smooth' | 'blocky';
+
+export interface MeshingModeInfo {
+  id: MeshingMode;
+  label: string;
+  build: (field: Float32Array, dims: GridDimensions, bounds: GridBounds) => BufferGeometry;
+}
+
+/**
+ * Modes de maillage disponibles. Pour en ajouter un : écrire un `build(field,
+ * dims, bounds)` et l'enregistrer ici (et étendre l'union `MeshingMode`).
+ */
+export const MESHING_MODES: readonly MeshingModeInfo[] = [
+  { id: 'smooth', label: 'Lissé (Surface Nets)', build: buildSmoothMesh },
+  { id: 'blocky', label: 'Cubes (voxels)', build: buildBlockyMesh },
+];
+
+export const DEFAULT_MESHING_MODE: MeshingMode = 'smooth';
+
+/** Construit la géométrie selon le mode demandé (retombe sur le premier mode si inconnu). */
+export function buildMesh(
+  mode: MeshingMode,
+  field: Float32Array,
+  dims: GridDimensions,
+  bounds: GridBounds,
+): BufferGeometry {
+  const info = MESHING_MODES.find((m) => m.id === mode) ?? MESHING_MODES[0];
+  return info.build(field, dims, bounds);
 }

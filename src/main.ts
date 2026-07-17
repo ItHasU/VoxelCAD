@@ -1,7 +1,7 @@
 import './style.css';
 import SamplerWorker from './voxel/sampler.worker.ts?worker&inline';
-import type { GridBounds } from './voxel/grid';
-import { buildSmoothMesh } from './voxel/meshing';
+import type { GridBounds, GridDimensions } from './voxel/grid';
+import { buildMesh, DEFAULT_MESHING_MODE, MESHING_MODES, type MeshingMode } from './voxel/meshing';
 import type { SamplerRequest, SamplerResponse } from './voxel/samplerProtocol';
 import { Viewer } from './viewer/scene';
 import { initTheme, toggleTheme } from './ui/theme';
@@ -36,6 +36,42 @@ const exportGlbBtn = el<HTMLButtonElement>('export-glb');
 
 let currentName = EXAMPLES[0].id;
 let lastGeometry: BufferGeometry | null = null;
+
+// Dernier champ échantillonné, conservé pour re-mailler sans ré-échantillonner
+// lorsqu'on change de mode de maillage.
+let meshingMode: MeshingMode = DEFAULT_MESHING_MODE;
+let lastField: Float32Array | null = null;
+let lastDims: GridDimensions | null = null;
+let lastBounds: GridBounds | null = null;
+
+// ---------- Mode de maillage ----------
+const meshingSelect = el<HTMLSelectElement>('meshing-select');
+for (const mode of MESHING_MODES) {
+  const opt = document.createElement('option');
+  opt.value = mode.id;
+  opt.textContent = mode.label;
+  meshingSelect.appendChild(opt);
+}
+meshingSelect.value = meshingMode;
+meshingSelect.addEventListener('change', () => {
+  meshingMode = meshingSelect.value as MeshingMode;
+  renderMesh(); // re-maillage à partir du champ en cache, sans ré-échantillonner
+});
+
+/** (Re)construit la géométrie depuis le dernier champ échantillonné selon le mode courant. */
+function renderMesh(): void {
+  if (!lastField || !lastDims || !lastBounds) return;
+  const geometry = buildMesh(meshingMode, lastField, lastDims, lastBounds);
+  const index = geometry.getIndex();
+  const triangles = (index ? index.count : geometry.getAttribute('position').count) / 3;
+  viewer.setGeometry(geometry);
+  lastGeometry = geometry;
+  exportStlBtn.disabled = false;
+  exportGlbBtn.disabled = false;
+  setStatus(
+    `${lastDims.nx}×${lastDims.ny}×${lastDims.nz} — ${NUMBER_FORMAT.format(triangles)} triangles`,
+  );
+}
 
 // ---------- Thème ----------
 el<HTMLButtonElement>('theme-toggle').addEventListener('click', () => toggleTheme());
@@ -170,15 +206,11 @@ async function generate(): Promise<void> {
       progress.update(msg.done, msg.total);
       setStatus(`Échantillonnage… ${NUMBER_FORMAT.format(msg.done)} / ${NUMBER_FORMAT.format(msg.total)}`);
     } else if (msg.type === 'result') {
-      const geometry = buildSmoothMesh(msg.field, msg.dims, bounds);
-      const index = geometry.getIndex();
-      const triangles = (index ? index.count : geometry.getAttribute('position').count) / 3;
-      viewer.setGeometry(geometry);
-      lastGeometry = geometry;
-      exportStlBtn.disabled = false;
-      exportGlbBtn.disabled = false;
+      lastField = msg.field;
+      lastDims = msg.dims;
+      lastBounds = bounds;
+      renderMesh();
       progress.stop();
-      setStatus(`${msg.dims.nx}×${msg.dims.ny}×${msg.dims.nz} — ${NUMBER_FORMAT.format(triangles)} triangles`);
       cancelActiveWorker();
       generateBtn.disabled = false;
     } else {
