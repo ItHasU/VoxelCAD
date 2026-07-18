@@ -47,6 +47,7 @@ const isInside = vcad
 - **Monaco Editor** pour l'édition de code intégrée (coloration, autocomplétion, vérification de types TypeScript).
 - **three.js** pour le rendu 3D (scène, `OrbitControls`, export `STLExporter` / `GLTFExporter`).
 - Pas de framework UI : DOM/TypeScript vanilla, pour garder le bundle single-file raisonnable.
+- **Persistance de session** : le code, les bornes, le pas, les modes de maillage/affichage, le thème et la largeur de l'éditeur sont mémorisés dans `localStorage` — on retrouve l'app dans le même état à la réouverture. L'export `.ts` embarque en en-tête les mêmes métadonnées (`// voxelcad:meta {…}`), réappliquées au chargement du fichier.
 - **PWA** : l'app est installable et fonctionne hors ligne. Un manifeste (`public/manifest.webmanifest`) et un service worker (`public/sw.js`, cache d'abord + repli réseau) mettent en cache la coquille autonome. Le service worker n'est actif que sur la version servie en http(s)/localhost (pas en `file://` ni en dev).
 
 Le détail des choix techniques et leurs justifications est dans [docs/DECISIONS.md](docs/DECISIONS.md). L'architecture (modules, flux de données, algorithme de meshing voxel) est dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). La liste des tâches est dans [docs/TASKS.md](docs/TASKS.md).

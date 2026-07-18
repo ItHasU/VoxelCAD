@@ -15,10 +15,11 @@ import { exportStl } from './export/exportStl';
 import { exportGlb } from './export/exportGlb';
 import { setupCollapsiblePanel } from './ui/panels';
 import { setupResizablePanel } from './ui/panelResize';
-import { loadCodeFile, saveCode, splitLoadedCode } from './editor/codeFile';
+import { loadCodeFile, saveCode, splitLoadedCode, type FileMeta } from './editor/codeFile';
 import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
 import { registerServiceWorker } from './pwa';
+import { isDisplayMode, isMeshingMode, loadSession, saveSession } from './ui/session';
 
 initTheme();
 registerServiceWorker();
@@ -26,8 +27,18 @@ registerServiceWorker();
 const el = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 
 const viewer = new Viewer(el('viewer'));
-const editor = createEditor(el('editor'), EXAMPLES[0].code);
-const boundsForm = createBoundsForm(el<HTMLFormElement>('bounds-form'), EXAMPLES[0].bounds);
+
+// État restauré depuis localStorage, ou valeurs de l'exemple par défaut.
+const initial = loadSession() ?? {
+  code: EXAMPLES[0].code,
+  bounds: EXAMPLES[0].bounds,
+  meshingMode: DEFAULT_MESHING_MODE,
+  displayMode: 'solid' as DisplayMode,
+  exampleId: EXAMPLES[0].id,
+};
+
+const editor = createEditor(el('editor'), initial.code);
+const boundsForm = createBoundsForm(el<HTMLFormElement>('bounds-form'), initial.bounds);
 const progress = createProgress(el('progress'), el('progress-bar'), el<HTMLButtonElement>('cancel'));
 const errorPanel = createErrorPanel(el('error-panel'));
 
@@ -37,15 +48,36 @@ const statusEl = el('status');
 const exportStlBtn = el<HTMLButtonElement>('export-stl');
 const exportGlbBtn = el<HTMLButtonElement>('export-glb');
 
-let currentName = EXAMPLES[0].id;
+let currentName = initial.exampleId;
 let lastGeometry: BufferGeometry | null = null;
 
 // Dernier champ échantillonné, conservé pour re-mailler sans ré-échantillonner
 // lorsqu'on change de mode de maillage.
-let meshingMode: MeshingMode = DEFAULT_MESHING_MODE;
+let meshingMode: MeshingMode = initial.meshingMode;
+let displayMode: DisplayMode = initial.displayMode;
+let currentBounds: GridBounds = initial.bounds;
 let lastField: Float32Array | null = null;
 let lastDims: GridDimensions | null = null;
 let lastBounds: GridBounds | null = null;
+
+/** Sauvegarde (différée) de l'état de travail dans localStorage. */
+let persistTimer = 0;
+function persistSession(): void {
+  const result = boundsForm.getBounds();
+  if (result.bounds) currentBounds = result.bounds;
+  clearTimeout(persistTimer);
+  persistTimer = window.setTimeout(() => {
+    saveSession({
+      code: editor.getValue(),
+      bounds: currentBounds,
+      meshingMode,
+      displayMode,
+      exampleId: currentName,
+    });
+  }, 300);
+}
+
+editor.onDidChange(persistSession);
 
 // ---------- Mode de maillage ----------
 const meshingSelect = el<HTMLSelectElement>('meshing-select');
@@ -59,6 +91,7 @@ meshingSelect.value = meshingMode;
 meshingSelect.addEventListener('change', () => {
   meshingMode = meshingSelect.value as MeshingMode;
   renderMesh(); // re-maillage à partir du champ en cache, sans ré-échantillonner
+  persistSession();
 });
 
 /** (Re)construit la géométrie depuis le dernier champ échantillonné selon le mode courant. */
@@ -96,30 +129,55 @@ setupResizablePanel(el('panel-editor'), el('editor-resizer'), 'voxelcad.editor-w
 
 // ---------- Mode d'affichage ----------
 const displayModeGroup = el('display-mode');
+
+function applyDisplayMode(mode: DisplayMode): void {
+  displayMode = mode;
+  displayModeGroup
+    .querySelectorAll<HTMLButtonElement>('button')
+    .forEach((b) => b.classList.toggle('is-active', b.dataset.mode === mode));
+  viewer.setDisplayMode(mode);
+}
+
 displayModeGroup.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
   btn.addEventListener('click', () => {
-    displayModeGroup
-      .querySelectorAll('button')
-      .forEach((b) => b.classList.toggle('is-active', b === btn));
-    viewer.setDisplayMode(btn.dataset.mode as DisplayMode);
+    applyDisplayMode(btn.dataset.mode as DisplayMode);
+    persistSession();
   });
 });
+
+// Restaure le mode d'affichage sauvegardé.
+applyDisplayMode(displayMode);
 
 // ---------- Sauvegarde / chargement du code ----------
 el<HTMLButtonElement>('save-code').addEventListener('click', () => {
   const result = boundsForm.getBounds();
-  const bounds = result.bounds ?? EXAMPLES[0].bounds;
-  saveCode(editor.getValue(), bounds, `voxelcad-${currentName}.ts`);
+  const meta: FileMeta = {
+    bounds: result.bounds ?? currentBounds,
+    meshingMode,
+    displayMode,
+    name: currentName,
+  };
+  saveCode(editor.getValue(), meta, `voxelcad-${currentName}.ts`);
 });
 
 el<HTMLButtonElement>('load-code').addEventListener('click', () => {
   void loadCodeFile().then((content) => {
     if (content === null) return;
-    const { code, bounds } = splitLoadedCode(content);
+    const { code, meta } = splitLoadedCode(content);
     editor.setValue(code);
-    if (bounds) boundsForm.setBounds(bounds);
-    currentName = 'custom';
+    if (meta) {
+      boundsForm.setBounds(meta.bounds);
+      if (isMeshingMode(meta.meshingMode)) {
+        meshingMode = meta.meshingMode;
+        meshingSelect.value = meshingMode;
+      }
+      if (isDisplayMode(meta.displayMode)) applyDisplayMode(meta.displayMode);
+      currentName = meta.name ?? 'custom';
+    } else {
+      currentName = 'custom';
+    }
     refreshEstimate();
+    persistSession();
   });
 });
 
@@ -127,12 +185,16 @@ el<HTMLButtonElement>('load-code').addEventListener('click', () => {
 el<HTMLButtonElement>('recenter').addEventListener('click', () => viewer.recenter());
 
 // ---------- Sélecteur d'exemples ----------
-setupExampleSelector(el<HTMLSelectElement>('example-select'), (example) => {
+const exampleSelect = el<HTMLSelectElement>('example-select');
+setupExampleSelector(exampleSelect, (example) => {
   currentName = example.id;
   editor.setValue(example.code);
   boundsForm.setBounds(example.bounds);
   refreshEstimate();
+  persistSession();
 });
+// Reflète l'exemple courant dans le sélecteur (si l'état restauré en vient d'un).
+if (EXAMPLES.some((e) => e.id === currentName)) exampleSelect.value = currentName;
 
 // ---------- Estimation du nombre de voxels ----------
 const NUMBER_FORMAT = new Intl.NumberFormat('fr-FR');
@@ -155,7 +217,10 @@ function refreshEstimate(): void {
   generateBtn.disabled = false;
 }
 
-boundsForm.onChange(refreshEstimate);
+boundsForm.onChange(() => {
+  refreshEstimate();
+  persistSession();
+});
 refreshEstimate();
 
 // ---------- Génération ----------
