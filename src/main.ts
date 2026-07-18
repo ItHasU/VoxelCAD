@@ -14,6 +14,7 @@ import { EXAMPLES, setupExampleSelector } from './ui/exampleSelector';
 import { exportStl } from './export/exportStl';
 import { exportGlb } from './export/exportGlb';
 import { setupCollapsiblePanel } from './ui/panels';
+import { setupResizablePanel } from './ui/panelResize';
 import { loadCodeFile, saveCode, splitLoadedCode } from './editor/codeFile';
 import type { DisplayMode } from './viewer/scene';
 import type { BufferGeometry } from 'three';
@@ -89,6 +90,9 @@ setupCollapsiblePanel(
   el('panel-params').querySelector<HTMLButtonElement>('.collapse-btn')!,
   el('reopen-params'),
 );
+
+// ---------- Éditeur redimensionnable ----------
+setupResizablePanel(el('panel-editor'), el('editor-resizer'), 'voxelcad.editor-width');
 
 // ---------- Mode d'affichage ----------
 const displayModeGroup = el('display-mode');

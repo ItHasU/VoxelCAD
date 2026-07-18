@@ -9,6 +9,9 @@ import {
 const AXES = ['x', 'y', 'z'] as const;
 type Axis = (typeof AXES)[number];
 
+/** Incrément du pas de calcul à la molette / aux flèches. */
+const WHEEL_STEP = 0.05;
+
 interface FieldRefs {
   step: HTMLInputElement;
   min: Record<Axis, HTMLInputElement>;
@@ -70,8 +73,27 @@ export function createBoundsForm(form: HTMLFormElement, initial: GridBounds): Bo
   stepLabel.className = 'field-label';
   stepLabel.textContent = 'Pas de calcul (step)';
   refs.step.min = '0';
+  // Incrément de 0,05 (flèches du clavier et molette de la souris).
+  refs.step.step = String(WHEEL_STEP);
+  refs.step.title = 'Molette : ±0,05';
   stepField.append(stepLabel, refs.step);
   form.appendChild(stepField);
+
+  // Molette au-dessus du champ : varie le pas par pas de 0,05, aligné sur la grille.
+  refs.step.addEventListener(
+    'wheel',
+    (event: WheelEvent) => {
+      event.preventDefault();
+      const current = Number(refs.step.value);
+      const base = Number.isFinite(current) ? current : 0;
+      const direction = event.deltaY < 0 ? 1 : -1;
+      const snapped = Math.round((base + direction * WHEEL_STEP) / WHEEL_STEP) * WHEEL_STEP;
+      const next = Math.max(WHEEL_STEP, snapped);
+      refs.step.value = String(Number(next.toFixed(2)));
+      refs.step.dispatchEvent(new Event('input', { bubbles: true }));
+    },
+    { passive: false },
+  );
 
   function readBounds(): GridBounds | null {
     const values: Record<string, number> = {};

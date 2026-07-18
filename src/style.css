@@ -306,6 +306,44 @@ body {
   min-height: 0;
 }
 
+/* Poignée de redimensionnement du panneau éditeur (bord droit) */
+.panel-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  z-index: 5;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.panel-resizer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  height: 34px;
+  width: 3px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--border-strong);
+  opacity: 0.7;
+  transition: background 0.15s ease;
+}
+
+.panel-resizer:hover::before,
+body.is-resizing .panel-resizer::before {
+  background: var(--accent);
+  opacity: 1;
+}
+
+/* Pendant le glisser : curseur global + pas de sélection de texte parasite */
+body.is-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+
 .fab-icon {
   font-size: 18px;
   line-height: 1;
